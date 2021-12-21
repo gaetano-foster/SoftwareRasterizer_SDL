@@ -10,7 +10,7 @@
 #define SCREEN_WIDTH        1245
 #define SCREEN_HEIGHT       720
 #define cls()               SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); \
-                                                    SDL_RenderClear(renderer)
+                                                    SDL_RenderClear(renderer) 
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     /* Game Loop */
+
     while (!close_requested) {
         SDL_PollEvent(&e);
         close_requested = (e.type == SDL_QUIT);
