@@ -13,18 +13,27 @@
 #define cls()               SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); \
                                                     SDL_RenderClear(renderer) 
 
+void on_user_create(SDL_Window *window, SDL_Renderer *renderer, int close_requested);
+
+
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     int close_requested;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
-    SDL_Event e;
-
-    window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(window, -1, 0);
 
     /* Game Loop */
+    on_user_create(window, renderer, close_requested);
+
+    return 0;
+}
+
+void on_user_create(SDL_Window *window, SDL_Renderer *renderer, int close_requested) {
+    window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Event e;
+
 
     while (!close_requested) {
         SDL_PollEvent(&e);
@@ -42,6 +51,4 @@ int main(int argc, char **argv) {
             SDL_RenderPresent(renderer);
         }
     }
-
-    return 0;
 }
