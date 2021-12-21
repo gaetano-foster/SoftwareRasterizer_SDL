@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "rmath.h"
 
 #define SCREEN_WIDTH        1245
 #define SCREEN_HEIGHT       720
