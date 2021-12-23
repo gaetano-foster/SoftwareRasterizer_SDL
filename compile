@@ -1,1 +1,1 @@
-gcc main.c -o a.out -L. -lm `sdl2-config --cflags --libs`
+gcc main.c -o a.out -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lm `sdl2-config --cflags --libs`
