@@ -55,6 +55,20 @@ int main(int argc, char **argv) {
                 for (int n = 0; n < 3; n++)
                     mmv(&tri_proj.p[n], tri.p[n], mat_proj);
 
+                /* Scale mesh into view */
+                tri_proj.p[0].x += 1.0f; 
+                tri_proj.p[0].y += 1.0f;
+			    tri_proj.p[1].x += 1.0f;
+                tri_proj.p[1].y += 1.0f;
+			    tri_proj.p[2].x += 1.0f; 
+                tri_proj.p[2].y += 1.0f;
+		    	tri_proj.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
+			    tri_proj.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
+		    	tri_proj.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
+		    	tri_proj.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
+		    	tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
+		    	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
+
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                         tri_proj.p[1].x, tri_proj.p[1].y, 
