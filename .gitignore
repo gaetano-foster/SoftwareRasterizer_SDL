@@ -29,7 +29,6 @@
 *.dylib
 
 # Executables
-projo
 *.exe
 *.out
 *.app

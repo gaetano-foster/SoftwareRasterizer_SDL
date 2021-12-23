@@ -1,1 +1,1 @@
-gcc main.c -o projo -L. -lm `sdl2-config --cflags --libs`
+gcc main.c -o a.out -L. -lm `sdl2-config --cflags --libs`
