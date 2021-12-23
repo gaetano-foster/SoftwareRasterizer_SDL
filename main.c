@@ -16,6 +16,7 @@
                                                     SDL_RenderClear(renderer) 
 
 void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh);
+void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov);
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
     SDL_Event e;
 
     /* Game Loop */
+    projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
     on_user_create(window, renderer, mesh);
     meshCube = *mesh;
 
@@ -97,5 +99,12 @@ void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh) {
 }
 
 void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov) {
+    float fov_rad = 1.0f / tanf(fov * 0.5f / 180.0f * 3.14159);
 
+    mat_proj->m[0][0] = ASPECT_RATIO * fov_rad;
+    mat_proj->m[1][1] = fov_rad;
+    mat_proj->m[2][2] = far / (far - near);
+    mat_proj->m[3][2] = (-far * near) / (far - near);
+    mat_proj->m[2][3] = 1;
+    mat_proj->m[3][3] = 0;
 }
