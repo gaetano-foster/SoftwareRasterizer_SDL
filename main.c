@@ -19,13 +19,15 @@ int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     int close_requested;
-    Mesh mesh;
+    Mesh *mesh;
+    Mesh meshCube;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
     SDL_Event e;
 
     /* Game Loop */
-    on_user_create(window, renderer, &mesh);
+    on_user_create(window, renderer, mesh);
+    meshCube = *mesh;
 
     while (!close_requested) {
         SDL_PollEvent(&e);
@@ -33,16 +35,24 @@ int main(int argc, char **argv) {
 
         if (close_requested) {
             break;
-        } else {
+        } 
+        else {
+            int i;
             cls(); // clear screen
             /*  Draw  Here  */
 
+            for (i = 0; i < 12; i++) {
+                Triangle tri = meshCube.tris[i];
 
+                
+            }
         
             /* Stop Drawing */
             SDL_RenderPresent(renderer);
         }
     }
+    free(mesh);
+    free(mesh->tris);
 
     return 0;
 }

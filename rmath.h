@@ -13,4 +13,8 @@
         Triangle *tris;
     } Mesh;
 
+    typedef struct mat4x4 {
+        float m[4][4];
+    } Mat4x4;
+
 #endif
