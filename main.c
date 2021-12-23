@@ -1,6 +1,6 @@
 /*
 *   Software rasterizer made in SDL2
-*   Github: @gfoster-ptr
+*   Github: @gaetano-foster
 */
 
 #include <stdlib.h>
