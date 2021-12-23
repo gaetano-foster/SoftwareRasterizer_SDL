@@ -3,13 +3,15 @@
 *   Github: @gfoster-ptr
 */
 
-#include <SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <SDL.h>
 #include "rmath.h"
 
 #define SCREEN_WIDTH        1245
 #define SCREEN_HEIGHT       720
+#define ASPECT_RATIO        (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH
 #define cls()               SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); \
                                                     SDL_RenderClear(renderer) 
 
@@ -19,6 +21,7 @@ int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     int close_requested;
+    Mat4x4 mat_proj;
     Mesh *mesh;
     Mesh meshCube;
 	SDL_Window *window;
@@ -44,7 +47,7 @@ int main(int argc, char **argv) {
             for (i = 0; i < 12; i++) {
                 Triangle tri = meshCube.tris[i];
 
-                
+
             }
         
             /* Stop Drawing */
@@ -91,4 +94,8 @@ void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh) {
 	};
 
     mesh->tris = tris;
+}
+
+void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov) {
+
 }
