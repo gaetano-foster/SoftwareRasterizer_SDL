@@ -9,31 +9,33 @@
 #include <SDL.h>
 #include "rmath.h"
 
-#define SCREEN_WIDTH        1245
-#define SCREEN_HEIGHT       720
+#define SCREEN_WIDTH        1200
+#define SCREEN_HEIGHT       650
 #define ASPECT_RATIO        (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH
-#define cls()               SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); \
-                                                    SDL_RenderClear(renderer) 
 
-void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh);
+void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh);
 void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov);
+void mmv(Vec3D *o, Vec3D i, Mat4x4 m);
+void draw_triangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3);
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
-    int close_requested;
     Mat4x4 mat_proj;
-    Mesh *mesh;
-    Mesh meshCube;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
     SDL_Event e;
 
+    Mesh mesh = malloc(12 * sizeof(Triangle));
+
     /* Game Loop */
     projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
     on_user_create(window, renderer, mesh);
-    meshCube = *mesh;
+    window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    printf("%f, %f, %f\n", mesh[0].p[1].x, mesh[0].p[1].y, mesh[0].p[1].z);
 
+    int close_requested = 0;
     while (!close_requested) {
         SDL_PollEvent(&e);
         close_requested = (e.type == SDL_QUIT);
@@ -42,14 +44,21 @@ int main(int argc, char **argv) {
             break;
         } 
         else {
-            int i;
-            cls(); // clear screen
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
+            SDL_RenderClear(renderer);  // clear screen
             /*  Draw  Here  */
 
-            for (i = 0; i < 12; i++) {
-                Triangle tri = meshCube.tris[i];
+            /* Draw the triangles */
+            for (int i = 0; i < 12; i++) {
+                Triangle tri = mesh[i];
+                Triangle tri_proj;
 
+                for (int n = 0; n < 3; n++)
+                    mmv(&tri_proj.p[n], tri.p[n], mat_proj);
 
+                draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
+                                        tri_proj.p[1].x, tri_proj.p[1].y, 
+                                        tri_proj.p[2].x, tri_proj.p[2].y);
             }
         
             /* Stop Drawing */
@@ -57,17 +66,11 @@ int main(int argc, char **argv) {
         }
     }
     free(mesh);
-    free(mesh->tris);
 
     return 0;
 }
 
-void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh) {
-    window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    mesh = malloc(sizeof(Mesh) * 12);
-    mesh->tris = malloc(12 * sizeof(Triangle));
-    
+void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh) {
     Triangle tris[12] = {
 
 		// SOUTH
@@ -95,7 +98,9 @@ void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh *mesh) {
 		(Triangle) { 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f },
 	};
 
-    mesh->tris = tris;
+    for (int i = 0; i < 12; i++) {
+        mesh[i] = tris[i];
+    }
 }
 
 void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov) {
@@ -121,4 +126,10 @@ void mmv(Vec3D *o, Vec3D i, Mat4x4 m) {
         o->y /= w; 
         o->z /= w;
     }
+}
+
+void draw_triangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3) {
+    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    SDL_RenderDrawLine(renderer, x2, y2, x3, y3);
+    SDL_RenderDrawLine(renderer, x3, y3, x1, y1);
 }

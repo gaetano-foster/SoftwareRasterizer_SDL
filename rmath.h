@@ -9,9 +9,7 @@
         Vec3D p[3];
     } Triangle;
 
-    typedef struct mesh {
-        Triangle *tris;
-    } Mesh;
+    typedef Triangle* Mesh;
 
     typedef struct mat4x4 {
         float m[4][4];
