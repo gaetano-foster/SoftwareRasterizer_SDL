@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
     on_user_create(window, renderer, mesh);
     window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, 0);
-    printf("%f, %f, %f\n", mesh[0].p[1].x, mesh[0].p[1].y, mesh[0].p[1].z);
 
     int close_requested = 0;
     while (!close_requested) {
@@ -51,11 +50,12 @@ int main(int argc, char **argv) {
             /* Draw the triangles */
             for (int i = 0; i < 12; i++) {
                 Triangle tri = mesh[i];
-                Triangle tri_proj;
+                Triangle tri_proj = mesh[i];
 
                 for (int n = 0; n < 3; n++)
                     mmv(&tri_proj.p[n], tri.p[n], mat_proj);
 
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                         tri_proj.p[1].x, tri_proj.p[1].y, 
                                         tri_proj.p[2].x, tri_proj.p[2].y);
