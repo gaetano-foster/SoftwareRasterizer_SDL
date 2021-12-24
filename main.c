@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 				        // How similar is normal to light direction?
 				        float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
 
-                        SDL_SetRenderDrawColor(renderer, dp * 100, dp * 100, dp * 100, 255);
+                        SDL_SetRenderDrawColor(renderer, dp * 255, dp * 255, dp * 255, 255);
                         
                         tri_proj = tri_rotzx;
                         for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
