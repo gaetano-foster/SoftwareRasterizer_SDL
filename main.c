@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	SDL_Renderer *renderer;
     SDL_Event e;
 
-    Mesh mesh = malloc(12 * sizeof(Triangle));
+    Mesh mesh = calloc(12, sizeof(Triangle));
 
     /* Game Loop */
     projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     int close_requested = 0;
+    float theta = 0;
     while (!close_requested) {
         SDL_PollEvent(&e);
 
@@ -45,20 +46,52 @@ int main(int argc, char **argv)
         } 
         else {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
-            SDL_RenderClear(renderer);  // clear screen
+            SDL_RenderClear(renderer);  // clear screen            
+            
+            Mat4x4 rot_z, rot_x; // rotation matrices
+            theta += 0.005f;
 
-            float theta = 0;
+            /* Rotation Z */
+            init_mat(&rot_z);
+		    rot_z.m[0][0] = cosf(theta);
+		    rot_z.m[0][1] = sinf(theta);
+		    rot_z.m[1][0] = -sinf(theta);
+		    rot_z.m[1][1] = cosf(theta);
+		    rot_z.m[2][2] = 1;
+		    rot_z.m[3][3] = 1;
+
+		    /* Rotation X */
+            init_mat(&rot_x);
+		    rot_x.m[0][0] = 1;
+		    rot_x.m[1][1] = cosf(theta * 0.5f);
+		    rot_x.m[1][2] = sinf(theta * 0.5f);
+		    rot_x.m[2][1] = -sinf(theta * 0.5f);
+		    rot_x.m[2][2] = cosf(theta * 0.5f);
+		    rot_x.m[3][3] = 1;
+
             /*  Draw  Here  */
 
             /* Draw the triangles */
             for (int i = 0; i < 12; i++) {
                 Triangle tri = mesh[i];
-                Triangle tri_proj = tri, tri_trans = tri;
+                Triangle tri_proj, tri_trans = tri, tri_rotz, tri_rotzx;
 
-                for (int n = 0; n < 3; n++)
-                    tri_trans.p[n].z = tri.p[n].z + 3.0f;
+                // Rotate in Z-Axis
+			    mmv(&tri_rotz.p[0], tri.p[0], rot_z);
+			    mmv(&tri_rotz.p[1], tri.p[1], rot_z);
+			    mmv(&tri_rotz.p[2], tri.p[2], rot_z);
 
-                for (int n = 0; n < 3; n++)
+			    // Rotate in X-Axis
+			    mmv(&tri_rotzx.p[0], tri_rotz.p[0], rot_x);
+			    mmv(&tri_rotzx.p[1], tri_rotz.p[1], rot_x);
+			    mmv(&tri_rotzx.p[2], tri_rotz.p[2], rot_x);
+
+                tri_trans = tri_rotzx;
+                for (int n = 0; n < 3; n++) // translate the triangle
+                    tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
+
+                tri_proj = tri_rotzx;
+                for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
                     mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
 
                 /* Scale mesh into view */
@@ -76,6 +109,7 @@ int main(int argc, char **argv)
 		    	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                printf("%f, %f, %f\n", tri_proj.p[0].x, tri_proj.p[0].y, tri_proj.p[0].z);
                 draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                         tri_proj.p[1].x, tri_proj.p[1].y, 
                                         tri_proj.p[2].x, tri_proj.p[2].y);
@@ -126,14 +160,15 @@ void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh)
 
 void projection_matrix(Mat4x4 *mat_proj, float near, float far, float fov) 
 {
-    float fov_rad = 1.0f / tanf(fov * 0.5f / 180.0f * 3.14159);
+    float fov_rad = 1.0f / tanf(fov * 0.5f / 180.0f * 3.14159f);
 
+    init_mat(mat_proj);
     mat_proj->m[0][0] = ASPECT_RATIO * fov_rad;
     mat_proj->m[1][1] = fov_rad;
     mat_proj->m[2][2] = far / (far - near);
     mat_proj->m[3][2] = (-far * near) / (far - near);
-    mat_proj->m[2][3] = 1;
-    mat_proj->m[3][3] = 0;
+    mat_proj->m[2][3] = 1.0f;
+    mat_proj->m[3][3] = 0.0f;
 }
 
 /* Multiply a vector and a matrix */
