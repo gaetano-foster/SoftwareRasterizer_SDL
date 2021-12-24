@@ -109,7 +109,6 @@ int main(int argc, char **argv)
 		    	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                printf("%f, %f, %f\n", tri_proj.p[0].x, tri_proj.p[0].y, tri_proj.p[0].z);
                 draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                         tri_proj.p[1].x, tri_proj.p[1].y, 
                                         tri_proj.p[2].x, tri_proj.p[2].y);

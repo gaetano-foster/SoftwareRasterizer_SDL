@@ -15,7 +15,7 @@
         float m[4][4];
     } Mat4x4;
 
-    void init_mat(Mat4x4 *m) 
+    void init_mat(Mat4x4 *m)
     {
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
