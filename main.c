@@ -24,11 +24,13 @@ int main(int argc, char **argv)
 	SDL_Init(SDL_INIT_EVERYTHING);
 
     Mat4x4 mat_proj;
+    Vec3D camera;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
     SDL_Event e;
 
     Mesh mesh = calloc(12, sizeof(Triangle));
+    camera = (Vec3D) { 0, 0, 0 };
 
     /* Game Loop */
     projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
                 /* Update Variables */         
             
                 Mat4x4 rot_z, rot_x; // rotation matrices
-                theta += 0.1f * elapsed_time;
+                theta += elapsed_time;
 
                 init_mat(&rot_z); // hardcode z rotation matrix
 		        rot_z.m[0][0] = cosf(theta);
@@ -114,28 +116,53 @@ int main(int argc, char **argv)
                     for (int n = 0; n < 3; n++) // translate the triangle
                         tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
 
-                    tri_proj = tri_rotzx;
-                    for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
-                        mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
+                    /* Use Cross-Product to Get Surface Normal */
+			        Vec3D normal, line1, line2;
+			        line1.x = tri_trans.p[1].x - tri_trans.p[0].x;
+			        line1.y = tri_trans.p[1].y - tri_trans.p[0].y;
+			        line1.z = tri_trans.p[1].z - tri_trans.p[0].z;
 
-                    /* Scale mesh into view */
-                    tri_proj.p[0].x += 1.0f; 
-                    tri_proj.p[0].y += 1.0f;
-			        tri_proj.p[1].x += 1.0f;
-                    tri_proj.p[1].y += 1.0f;
-			        tri_proj.p[2].x += 1.0f; 
-                    tri_proj.p[2].y += 1.0f;
-		        	tri_proj.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
-			        tri_proj.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
-		        	tri_proj.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
-		        	tri_proj.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
-		        	tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
-		        	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
+			        line2.x = tri_trans.p[2].x - tri_trans.p[0].x;
+			        line2.y = tri_trans.p[2].y - tri_trans.p[0].y;
+		        	line2.z = tri_trans.p[2].z - tri_trans.p[0].z;
 
-                   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                    draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
-                                            tri_proj.p[1].x, tri_proj.p[1].y, 
-                                            tri_proj.p[2].x, tri_proj.p[2].y);
+		        	normal.x = line1.y * line2.z - line1.z * line2.y;
+		        	normal.y = line1.z * line2.x - line1.x * line2.z;
+		        	normal.z = line1.x * line2.y - line1.y * line2.x;
+
+                    // it's normally normal to normalize a normal
+		        	float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+		        	normal.x /= l;
+                    normal.y /= l; 
+                    normal.z /= l;
+
+                    if (normal.x * (tri_trans.p[0].x - camera.x) +
+                        normal.y * (tri_trans.p[0].y - camera.y) +                                        
+                        normal.z * (tri_trans.p[0].z - camera.z) < 0) {
+
+                        tri_proj = tri_rotzx;
+                        for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
+                            mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
+
+                        /* Scale mesh into view */
+                        tri_proj.p[0].x += 1.0f; 
+                        tri_proj.p[0].y += 1.0f;
+			            tri_proj.p[1].x += 1.0f;
+                        tri_proj.p[1].y += 1.0f;
+			            tri_proj.p[2].x += 1.0f; 
+                        tri_proj.p[2].y += 1.0f;
+		        	    tri_proj.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
+			            tri_proj.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
+		        	    tri_proj.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
+		        	    tri_proj.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
+		        	    tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
+		        	    tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
+
+                        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                        draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
+                                                tri_proj.p[1].x, tri_proj.p[1].y, 
+                                                tri_proj.p[2].x, tri_proj.p[2].y);
+                    }
                 }
         
                 /* Stop Drawing */
