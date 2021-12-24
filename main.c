@@ -38,23 +38,28 @@ int main(int argc, char **argv)
     int close_requested = 0;
     while (!close_requested) {
         SDL_PollEvent(&e);
-        close_requested = (e.type == SDL_QUIT);
 
+        close_requested = (e.type == SDL_QUIT);
         if (close_requested) {
             break;
         } 
         else {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
             SDL_RenderClear(renderer);  // clear screen
+
+            float theta = 0;
             /*  Draw  Here  */
 
             /* Draw the triangles */
             for (int i = 0; i < 12; i++) {
                 Triangle tri = mesh[i];
-                Triangle tri_proj = mesh[i];
+                Triangle tri_proj = tri, tri_trans = tri;
 
                 for (int n = 0; n < 3; n++)
-                    mmv(&tri_proj.p[n], tri.p[n], mat_proj);
+                    tri_trans.p[n].z = tri.p[n].z + 3.0f;
+
+                for (int n = 0; n < 3; n++)
+                    mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
 
                 /* Scale mesh into view */
                 tri_proj.p[0].x += 1.0f; 
