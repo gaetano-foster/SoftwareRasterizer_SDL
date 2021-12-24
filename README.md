@@ -1,6 +1,6 @@
 # SoftwareRasterizer
 
-##"Tredimenshonal Graffikk" 
+"Tredimenshonal Graffikk" 
 
 A simple 3D rasterizing engine, made in SDL2 with c. 
 It's not perfect by any stretch of the imagination,
