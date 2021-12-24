@@ -1,1 +1,4 @@
-gcc main.c -o a.out -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lm `sdl2-config --cflags --libs`
+gcc -c rmath.c
+ar -rc librmath.a rmath.o
+ranlib librmath.a
+gcc main.c -o a.out -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lrmath -lm `sdl2-config --cflags --libs`
