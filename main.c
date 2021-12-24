@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include <SDL.h>
 #include "rmath.h"
 
@@ -37,6 +38,22 @@ int main(int argc, char **argv)
 
     int close_requested = 0;
     float theta = 0;
+
+    /* FPS Cap Vars */
+
+    double delta = 0;
+    double elapsed_time;
+    int max_fps = 72;
+    double time_per_tick;
+    clock_t now;
+    clock_t last_time;
+    clock_t timer = 0;
+    float ticks = 0;
+
+    time_per_tick = CLOCKS_PER_SEC / max_fps;
+    elapsed_time = 1.0f / max_fps;
+    last_time = clock();
+
     while (!close_requested) {
         SDL_PollEvent(&e);
 
@@ -45,77 +62,94 @@ int main(int argc, char **argv)
             break;
         } 
         else {
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
-            SDL_RenderClear(renderer);  // clear screen            
+            now = clock();
+            delta += (now - last_time) / time_per_tick;
+            timer += now - last_time;
+            last_time = now;
+
+            /* Main Game Loop */
+            if (delta >= 1) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
+                SDL_RenderClear(renderer);  // clear screen   
+
+                /* Update Variables */         
             
-            Mat4x4 rot_z, rot_x; // rotation matrices
-            theta += 0.005f;
+                Mat4x4 rot_z, rot_x; // rotation matrices
+                theta += 0.1f * elapsed_time;
 
-            /* Rotation Z */
-            init_mat(&rot_z);
-		    rot_z.m[0][0] = cosf(theta);
-		    rot_z.m[0][1] = sinf(theta);
-		    rot_z.m[1][0] = -sinf(theta);
-		    rot_z.m[1][1] = cosf(theta);
-		    rot_z.m[2][2] = 1;
-		    rot_z.m[3][3] = 1;
+                init_mat(&rot_z); // hardcode z rotation matrix
+		        rot_z.m[0][0] = cosf(theta);
+		        rot_z.m[0][1] = sinf(theta);
+		        rot_z.m[1][0] = -sinf(theta);
+		        rot_z.m[1][1] = cosf(theta);
+		        rot_z.m[2][2] = 1;
+		        rot_z.m[3][3] = 1;
 
-		    /* Rotation X */
-            init_mat(&rot_x);
-		    rot_x.m[0][0] = 1;
-		    rot_x.m[1][1] = cosf(theta * 0.5f);
-		    rot_x.m[1][2] = sinf(theta * 0.5f);
-		    rot_x.m[2][1] = -sinf(theta * 0.5f);
-		    rot_x.m[2][2] = cosf(theta * 0.5f);
-		    rot_x.m[3][3] = 1;
+                init_mat(&rot_x); // hardcode x rotation matrix
+		        rot_x.m[0][0] = 1;
+		        rot_x.m[1][1] = cosf(theta * 0.5f); // different speed to avoid gimbal lock
+		        rot_x.m[1][2] = sinf(theta * 0.5f);
+		        rot_x.m[2][1] = -sinf(theta * 0.5f);
+		        rot_x.m[2][2] = cosf(theta * 0.5f);
+		        rot_x.m[3][3] = 1;
 
-            /*  Draw  Here  */
+                /*  Draw  Here  */
 
-            /* Draw the triangles */
-            for (int i = 0; i < 12; i++) {
-                Triangle tri = mesh[i];
-                Triangle tri_proj, tri_trans = tri, tri_rotz, tri_rotzx;
+                /* Draw the triangles */
+                for (int i = 0; i < 12; i++) {
+                    Triangle tri = mesh[i];
+                    Triangle tri_proj, tri_trans = tri, tri_rotz, tri_rotzx;
 
-                // Rotate in Z-Axis
-			    mmv(&tri_rotz.p[0], tri.p[0], rot_z);
-			    mmv(&tri_rotz.p[1], tri.p[1], rot_z);
-			    mmv(&tri_rotz.p[2], tri.p[2], rot_z);
+                    // Rotate in Z-Axis
+			        mmv(&tri_rotz.p[0], tri.p[0], rot_z);
+			        mmv(&tri_rotz.p[1], tri.p[1], rot_z);
+			        mmv(&tri_rotz.p[2], tri.p[2], rot_z);
 
-			    // Rotate in X-Axis
-			    mmv(&tri_rotzx.p[0], tri_rotz.p[0], rot_x);
-			    mmv(&tri_rotzx.p[1], tri_rotz.p[1], rot_x);
-			    mmv(&tri_rotzx.p[2], tri_rotz.p[2], rot_x);
+			        // Rotate in X-Axis
+			        mmv(&tri_rotzx.p[0], tri_rotz.p[0], rot_x);
+			        mmv(&tri_rotzx.p[1], tri_rotz.p[1], rot_x);
+			        mmv(&tri_rotzx.p[2], tri_rotz.p[2], rot_x);
 
-                tri_trans = tri_rotzx;
-                for (int n = 0; n < 3; n++) // translate the triangle
-                    tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
+                    tri_trans = tri_rotzx;
+                    for (int n = 0; n < 3; n++) // translate the triangle
+                        tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
 
-                tri_proj = tri_rotzx;
-                for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
-                    mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
+                    tri_proj = tri_rotzx;
+                    for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
+                        mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
 
-                /* Scale mesh into view */
-                tri_proj.p[0].x += 1.0f; 
-                tri_proj.p[0].y += 1.0f;
-			    tri_proj.p[1].x += 1.0f;
-                tri_proj.p[1].y += 1.0f;
-			    tri_proj.p[2].x += 1.0f; 
-                tri_proj.p[2].y += 1.0f;
-		    	tri_proj.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
-			    tri_proj.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
-		    	tri_proj.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
-		    	tri_proj.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
-		    	tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
-		    	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
+                    /* Scale mesh into view */
+                    tri_proj.p[0].x += 1.0f; 
+                    tri_proj.p[0].y += 1.0f;
+			        tri_proj.p[1].x += 1.0f;
+                    tri_proj.p[1].y += 1.0f;
+			        tri_proj.p[2].x += 1.0f; 
+                    tri_proj.p[2].y += 1.0f;
+		        	tri_proj.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
+			        tri_proj.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
+		        	tri_proj.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
+		        	tri_proj.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
+		        	tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
+		        	tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
-                                        tri_proj.p[1].x, tri_proj.p[1].y, 
-                                        tri_proj.p[2].x, tri_proj.p[2].y);
-            }
+                   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                    draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
+                                            tri_proj.p[1].x, tri_proj.p[1].y, 
+                                            tri_proj.p[2].x, tri_proj.p[2].y);
+                }
         
-            /* Stop Drawing */
-            SDL_RenderPresent(renderer);
+                /* Stop Drawing */
+                SDL_RenderPresent(renderer);
+                /* FPS Cap */
+                ticks++;
+                delta--;
+            }
+
+            if (timer >= CLOCKS_PER_SEC) {
+    	        elapsed_time = 1.0f / ticks;
+                ticks = 0;
+                timer = 0;
+            }
         }
     }
     free(mesh);
