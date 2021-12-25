@@ -1,5 +1,5 @@
 #! /usr/bin/bash
-gcc -c rmath.c
-ar -rc librmath.a rmath.o
-ranlib librmath.a
-gcc main.c -o a.out -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lrmath -lm `sdl2-config --cflags --libs`
+gcc -c engine.c
+ar -rc libengine.a engine.o
+ranlib libengine.a
+gcc main.c -o a.out -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lengine -lm `sdl2-config --cflags --libs`
