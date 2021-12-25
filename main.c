@@ -57,6 +57,7 @@ int main(int argc, char **argv)
     time_per_tick = CLOCKS_PER_SEC / max_fps;
     elapsed_time = 1.0f / max_fps;
     last_time = clock();
+    srand(time(0));
 
     while (!close_requested) {
         SDL_PollEvent(&e);
@@ -105,14 +106,12 @@ int main(int argc, char **argv)
                     Triangle tri_proj, tri_trans = tri, tri_rotz, tri_rotzx;
 
                     // Rotate in Z-Axis
-			        mmv(&tri_rotz.p[0], tri.p[0], rot_z);
-			        mmv(&tri_rotz.p[1], tri.p[1], rot_z);
-			        mmv(&tri_rotz.p[2], tri.p[2], rot_z);
+                    for (int n = 0; n < 3; n++)
+			            mmv(&tri_rotz.p[n], tri.p[n], rot_z);
 
 			        // Rotate in X-Axis
-			        mmv(&tri_rotzx.p[0], tri_rotz.p[0], rot_x);
-			        mmv(&tri_rotzx.p[1], tri_rotz.p[1], rot_x);
-			        mmv(&tri_rotzx.p[2], tri_rotz.p[2], rot_x);
+                    for (int n = 0; n < 3; n++)
+			            mmv(&tri_rotzx.p[n], tri_rotz.p[n], rot_x);
 
                     tri_trans = tri_rotzx;
                     for (int n = 0; n < 3; n++) // translate the triangle
@@ -137,17 +136,17 @@ int main(int argc, char **argv)
 		        	normal.x /= l;
                     normal.y /= l; 
                     normal.z /= l;
-
+                    
                     if (normal.x * (tri_trans.p[0].x - camera.x) +
                         normal.y * (tri_trans.p[0].y - camera.y) +                                        
                         normal.z * (tri_trans.p[0].z - camera.z) < 0) {
 
                         /* Illumination */
                         Vec3D light_direction = (Vec3D) { 0.0f, 0.0f, -1.0f }; // spaghetti
-                        float l = sqrtf(light_direction.x * light_direction.x + light_direction.y * light_direction.y + light_direction.z * light_direction.z);
-				        light_direction.x /= l; 
-                        light_direction.y /= l; 
-                        light_direction.z /= l;
+                        float ld = sqrtf(light_direction.x * light_direction.x + light_direction.y * light_direction.y + light_direction.z * light_direction.z);
+				        light_direction.x /= ld; 
+                        light_direction.y /= ld; 
+                        light_direction.z /= ld;
 
 				        // How similar is normal to light direction?
 				        float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
@@ -173,6 +172,11 @@ int main(int argc, char **argv)
 		        	    tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
                         fill_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
+                                                tri_proj.p[1].x, tri_proj.p[1].y, 
+                                                tri_proj.p[2].x, tri_proj.p[2].y);
+
+                        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                        draw_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                                 tri_proj.p[1].x, tri_proj.p[1].y, 
                                                 tri_proj.p[2].x, tri_proj.p[2].y);
                     }
