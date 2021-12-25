@@ -1,6 +1,10 @@
 #ifndef R_MATH_H
     #define R_MATH_H
 
+    #define SCREEN_WIDTH        1200
+    #define SCREEN_HEIGHT       650
+    #define ASPECT_RATIO        (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH
+
     typedef struct vec3d {
         float x, y, z;
     } Vec3D;

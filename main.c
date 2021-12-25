@@ -10,10 +10,6 @@
 #include <SDL.h>
 #include "engine.h"
 
-#define SCREEN_WIDTH        1200
-#define SCREEN_HEIGHT       650
-#define ASPECT_RATIO        (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH
-
 void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh);
 
 int main(int argc, char **argv) 
