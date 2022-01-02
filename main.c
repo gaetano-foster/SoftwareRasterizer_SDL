@@ -17,7 +17,10 @@ void fill_triangle(SDL_Renderer *renderer, int x0, int y0, int x1, int y1, int x
 
 int main(int argc, char **argv) 
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        fprintf(stderr, "Error! Couldn't init everything. %s\n", SDL_GetError());
+        exit(0);
+    }
 
     Mat4x4 mat_proj;
     Vec3D camera;
@@ -31,6 +34,7 @@ int main(int argc, char **argv)
     /* Game Loop */
     projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
     on_user_create(window, renderer, mesh);
+
     window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
@@ -52,6 +56,11 @@ int main(int argc, char **argv)
     elapsed_time = 1.0f / max_fps;
     last_time = clock();
     srand(time(0));
+
+    if (!window) {
+        fprintf(stderr, "Error! Window could not be created. %s\n", SDL_GetError());
+        exit(0);
+    }
 
     while (!close_requested) {
         SDL_PollEvent(&e);
