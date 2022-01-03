@@ -7,13 +7,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include <SDL.h>
 #include "engine.h"
 
 void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh);
-void draw_triangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3);
-void q_fill_triangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3);
-void fill_triangle(SDL_Renderer *renderer, int x0, int y0, int x1, int y1, int x2, int y2);
 
 int main(int argc, char **argv) 
 {
@@ -140,9 +136,9 @@ int main(int argc, char **argv)
                     normal.y /= l; 
                     normal.z /= l;
                     
-                    if (normal.x * (tri_trans.p[0].x - camera.x) +
-                        normal.y * (tri_trans.p[0].y - camera.y) +                                        
-                        normal.z * (tri_trans.p[0].z - camera.z) < 0) {
+                    if  (normal.x * (tri_trans.p[0].x - camera.x) +
+                         normal.y * (tri_trans.p[0].y - camera.y) +                                        
+                         normal.z * (tri_trans.p[0].z - camera.z) < 0) {
 
                         /* Illumination */
                         Vec3D light_direction = (Vec3D) { 0.0f, 0.0f, -1.0f }; // spaghetti
@@ -236,82 +232,4 @@ void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh)
     for (int i = 0; i < 12; i++) {
         mesh[i] = tris[i];
     }
-}
-
-void draw_triangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3) 
-{
-    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-    SDL_RenderDrawLine(renderer, x2, y2, x3, y3);
-    SDL_RenderDrawLine(renderer, x3, y3, x1, y1);
-}
-
-void q_fill_triangle(SDL_Renderer *renderer, int x0, int y0, int x1, int y1, int x2, int y2)
-{
-    int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
-
-		dx = x2 - x1; dy = y2 - y1;
-		dx1 = abs(dx); dy1 = abs(dy);
-		px = 2 * dy1 - dx1;	py = 2 * dx1 - dy1;
-	
-		if (dy1 <= dx1) {
-			if (dx >= 0) {
-				x = x1; y = y1; xe = x2;
-			}
-			else {
-				x = x2; y = y2; xe = x1;
-			}
-			SDL_RenderDrawLine(renderer, x0, y0, x, y);
-	
-			for (i = 0; x < xe; i++)
-			{
-				x = x + 1;
-				if (px < 0)
-					px = px + 2 * dy1;
-				else {
-					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0))
-						y = y + 1;
-					else
-						y = y - 1;
-					px = px + 2 * (dy1 - dx1);
-				}
-				SDL_RenderDrawLine(renderer, x0, y0, x, y);
-			}
-		}
-		else {
-			if (dy >= 0) {
-				x = x1; y = y1; ye = y2;
-			}
-			else {
-				x = x2; y = y2; ye = y1;
-			}
-	
-			SDL_RenderDrawLine(renderer, x0, y0, x, y);
-	
-			for (i = 0; y < ye; i++) {
-				y = y + 1;
-				if (py <= 0)
-					py = py + 2 * dx1;
-				else {
-					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0))
-						x = x + 1;
-					else
-						x = x - 1;
-					py = py + 2 * (dx1 - dy1);
-				}
-				SDL_RenderDrawLine(renderer, x0, y0, x, y);
-			}
-		}
-}
-
-void fill_triangle(SDL_Renderer *renderer, int x0, int y0, int x1, int y1, int x2, int y2) 
-{
-    q_fill_triangle(renderer, x0, y0,
-                              x1, y1, 
-                              x2, y2);
-    q_fill_triangle(renderer, x2, y2,
-                              x0, y0, 
-                              x1, y1);
-    q_fill_triangle(renderer, x1, y1,
-                              x2, y2, 
-                              x0, y0);
 }
