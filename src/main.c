@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "engine.h"
+#include "engine/engine.h"
 
 void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh);
 

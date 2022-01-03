@@ -1,3 +1,3 @@
 #! /usr/bin/bash
 
-gcc -o a.out main.c engine.c -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lm `sdl2-config --cflags --libs`
+gcc -o a.out src/main.c src/engine/engine.c -g -fexpensive-optimizations -flto -O -Wunreachable-code -Wno-deprecated -Wno-unknown-pragmas -DUNICODE -L. -lm `sdl2-config --cflags --libs`
