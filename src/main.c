@@ -37,7 +37,6 @@ int main(int argc, char **argv)
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     int close_requested = 0;
-    int wireframe = 0;
     float theta = 0;
 
     /* FPS Cap Vars */
