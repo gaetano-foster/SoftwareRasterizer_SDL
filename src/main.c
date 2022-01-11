@@ -18,6 +18,8 @@ int main(int argc, char **argv)
         exit(0);
     }
 
+    int keyboard[256];
+
     Mat4x4 mat_proj;
     Vec3D camera;
 	SDL_Window *window;
@@ -35,13 +37,14 @@ int main(int argc, char **argv)
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     int close_requested = 0;
+    int wireframe = 0;
     float theta = 0;
 
     /* FPS Cap Vars */
 
     double delta = 0;
     double elapsed_time;
-    int max_fps = 72;
+    int max_fps = 20000;
     double time_per_tick;
     clock_t now;
     clock_t last_time;
@@ -70,6 +73,15 @@ int main(int argc, char **argv)
             delta += (now - last_time) / time_per_tick;
             timer += now - last_time;
             last_time = now;
+
+            switch(e.type) {
+                case SDL_KEYDOWN:
+                    keyboard[e.key.keysym.sym] = 0;
+                    break;
+                case SDL_KEYUP:
+                    keyboard[e.key.keysym.sym] = 1;
+                    break;
+            }  
 
             /* Main Game Loop */
             if (delta >= 1) {
@@ -113,8 +125,9 @@ int main(int argc, char **argv)
 			            mmv(&tri_rotzx.p[n], tri_rotz.p[n], rot_x);
 
                     tri_trans = tri_rotzx;
-                    for (int n = 0; n < 3; n++) // translate the triangle
-                        tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
+                    for (int n = 0; n < 3; n++) { // translate the triangle
+                        tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f - camera.z;
+                    }
 
                     /* Use Cross-Product to Get Surface Normal */
 			        Vec3D normal, line1, line2;
@@ -140,18 +153,6 @@ int main(int argc, char **argv)
                          normal.y * (tri_trans.p[0].y - camera.y) +                                        
                          normal.z * (tri_trans.p[0].z - camera.z) < 0) {
 
-                        /* Illumination */
-                        Vec3D light_direction = (Vec3D) { 0.0f, 0.0f, -1.0f }; // spaghetti
-                        float ld = sqrtf(light_direction.x * light_direction.x + light_direction.y * light_direction.y + light_direction.z * light_direction.z);
-				        light_direction.x /= ld; 
-                        light_direction.y /= ld; 
-                        light_direction.z /= ld;
-
-				        // How similar is normal to light direction?
-				        float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
-
-                        SDL_SetRenderDrawColor(renderer, dp * 255, dp * 255, dp * 255, 255);
-                        
                         tri_proj = tri_rotzx;
                         for (int n = 0; n < 3; n++) // apply perspective/projection to triangle
                             mmv(&tri_proj.p[n], tri_trans.p[n], mat_proj);
@@ -170,6 +171,23 @@ int main(int argc, char **argv)
 		        	    tri_proj.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
 		        	    tri_proj.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
+                        /* Illumination */
+                        Vec3D light_direction = (Vec3D) { 0.0f, 0.0f, -1.0f }; // spaghetti
+                        float ld = sqrtf(light_direction.x * light_direction.x + light_direction.y * light_direction.y + light_direction.z * light_direction.z);
+				        light_direction.x /= ld; 
+                        light_direction.y /= ld; 
+                        light_direction.z /= ld;
+
+				        // How similar is normal to light direction?
+				        float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
+
+                        if (keyboard[SDLK_w] == 1)
+                            camera.z -= elapsed_time;
+
+                        if (keyboard[SDLK_s] == 1)
+                            camera.z += elapsed_time;
+
+                        SDL_SetRenderDrawColor(renderer, dp * 255, dp * 255, dp * 255, 255);
                         fill_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                                 tri_proj.p[1].x, tri_proj.p[1].y, 
                                                 tri_proj.p[2].x, tri_proj.p[2].y);
@@ -188,8 +206,9 @@ int main(int argc, char **argv)
                 delta--;
             }
 
-            if (timer >= CLOCKS_PER_SEC) {
-    	        elapsed_time = 1.0f / ticks;
+            if (timer >= CLOCKS_PER_SEC / 8) {
+    	        elapsed_time = 0.125f / ticks;
+                printf("FPS: %.1f\n", ticks * 8);
                 ticks = 0;
                 timer = 0;
             }
