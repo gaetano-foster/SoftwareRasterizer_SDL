@@ -9,7 +9,7 @@
 #include <time.h>
 #include "engine/engine.h"
 
-void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh);
+void on_user_create(Mesh mesh);
 
 int main(int argc, char **argv) 
 {
@@ -17,8 +17,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error! Couldn't init everything. %s\n", SDL_GetError());
         exit(0);
     }
-
-    int keyboard[256];
 
     Mat4x4 mat_proj;
     Vec3D camera;
@@ -31,7 +29,7 @@ int main(int argc, char **argv)
 
     /* Game Loop */
     projection_matrix(&mat_proj, 0.1f, 1000.0f, 90.0f);
-    on_user_create(window, renderer, mesh);
+    on_user_create(mesh);
 
     window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, 0);
@@ -53,7 +51,6 @@ int main(int argc, char **argv)
     time_per_tick = CLOCKS_PER_SEC / max_fps;
     elapsed_time = 1.0f / max_fps;
     last_time = clock();
-    srand(time(0));
 
     if (!window) {
         fprintf(stderr, "Error! Window could not be created. %s\n", SDL_GetError());
@@ -72,15 +69,6 @@ int main(int argc, char **argv)
             delta += (now - last_time) / time_per_tick;
             timer += now - last_time;
             last_time = now;
-
-            switch(e.type) {
-                case SDL_KEYDOWN:
-                    keyboard[e.key.keysym.sym] = 0;
-                    break;
-                case SDL_KEYUP:
-                    keyboard[e.key.keysym.sym] = 1;
-                    break;
-            }  
 
             /* Main Game Loop */
             if (delta >= 1) {
@@ -125,7 +113,7 @@ int main(int argc, char **argv)
 
                     tri_trans = tri_rotzx;
                     for (int n = 0; n < 3; n++) { // translate the triangle
-                        tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f - camera.z;
+                        tri_trans.p[n].z = tri_rotzx.p[n].z + 3.0f;
                     }
 
                     /* Use Cross-Product to Get Surface Normal */
@@ -180,12 +168,6 @@ int main(int argc, char **argv)
 				        // How similar is normal to light direction?
 				        float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
 
-                        if (keyboard[SDLK_w] == 1)
-                            camera.z -= elapsed_time;
-
-                        if (keyboard[SDLK_s] == 1)
-                            camera.z += elapsed_time;
-
                         SDL_SetRenderDrawColor(renderer, dp * 255, dp * 255, dp * 255, 255);
                         fill_triangle(renderer, tri_proj.p[0].x, tri_proj.p[0].y,
                                                 tri_proj.p[1].x, tri_proj.p[1].y, 
@@ -218,7 +200,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void on_user_create(SDL_Window *window, SDL_Renderer *renderer, Mesh mesh) 
+void on_user_create(Mesh mesh) 
 {
     Triangle tris[12] = {
 
